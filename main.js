@@ -1,44 +1,74 @@
 import fs from 'fs';
 import path from 'path';
-import {getArgs, createDir, moveFile, removeDir, getFiles} from './helper.js';
+import yargs from 'yargs';
 
-const options = getArgs();
+import {createDir, moveFile, removeDir, getFiles} from './helper.js';
 const __dirname = path.resolve();
 
-const base = options.base || './test';
-const resultDir = options.result || './result';
-const removeAfterSort = options.remove || false;
+const argv = yargs(process.argv)
+  .usage("Usage: node $0 [options]")
+  .help('help')
+  .alias('help', 'h')
+  .version('1.0.0')
+  .alias('version', 'v')
+  .example('node $0 --entry [path]', 'File sort')
+  .option('entry', {
+    alias: 'e',
+    describe: 'Start folder path',
+    demandOption: true
+  })
+  .option('output', {
+    alias: 'o',
+    describe: "Result folder path",
+    default: '/result'
+  })
+  .option('remove', {
+    alias: "D",
+    describe: 'Remove start folder?',
+    type: 'boolean',
+    default: false
+  })
+  .epilog('Program for Sort')
+  .argv
+
+const base = path.normalize(path.join(__dirname, argv.entry));
+const resultDir = path.normalize(path.join(__dirname, argv.output));
+const removeAfterSort = argv.remove || false;
 
 const readDir = (base) => {
-  const files = getFiles(base);
-
-  if(!files) {
-    return '';
-  }
-
-  files.forEach(item => {
-
-    let localBase = path.join(base, item);
-    let state = fs.statSync(localBase);
-    let currentDir = path.join(__dirname, base);
-
-    if (state.isDirectory()) {
-      readDir(localBase);
-    } else {
-      // Created result dir
-      createDir(resultDir);
-      // Get path for current file
-      const currentPath = path.join(currentDir, item);
-      // Create dir for current file
-      const dirForFile = createDir(path.join(resultDir, item[0]));
-      // Create new path for file
-      const newPath = path.join(dirForFile, item);
-      // Move file to special folder
-      moveFile(currentPath, newPath);
+   getFiles(base, (err, files) => {
+    if (!files) {
+      return '';
     }
+    files.forEach(item => {
+      let localBase = path.join(base, item);
+      fs.stat(localBase, (err, state) => {
+        let currentDir = base;
+        if (state.isDirectory()) {
+          readDir(localBase);
+        } else {
+          // Created result dir
+          createDir(resultDir, (err, result) => {
+            const currentPath = path.join(currentDir, item);
+            // Create dir for current file
+            createDir(path.join(result, item[0]), (err, result) => {
+              // Create new path for file
+              const newPath = path.join(result, item);
+              // Move file to special folder
+              moveFile(currentPath, newPath, (err, result) => {
+                console.log(result)
+              });
+            });
+          });
+        }
+      });
+    })
   });
   if (removeAfterSort) {
-    removeDir(base);
+    console.log(base)
+    removeDir(base, (err, result) => {
+      console.log(result);
+    });
   }
 }
 
