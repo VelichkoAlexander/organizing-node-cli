@@ -1,8 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import yargs from 'yargs';
+import rimraf from 'rimraf';
 
-import {createDir, moveFile, removeDir, getFiles} from './helper.js';
+import {createDir, getFiles} from './helper.js';
+
 const __dirname = path.resolve();
 
 const argv = yargs(process.argv)
@@ -36,7 +38,7 @@ const resultDir = path.normalize(path.join(__dirname, argv.output));
 const removeAfterSort = argv.remove || false;
 
 const readDir = (base) => {
-   getFiles(base, (err, files) => {
+  getFiles(base, (err, files) => {
     if (!files) {
       return '';
     }
@@ -51,13 +53,13 @@ const readDir = (base) => {
           createDir(resultDir, (err, result) => {
             const currentPath = path.join(currentDir, item);
             // Create dir for current file
-            createDir(path.join(result, item[0]), (err, result) => {
+            createDir(path.join(result, item[0].toUpperCase()), (err, result) => {
               // Create new path for file
               const newPath = path.join(result, item);
               // Move file to special folder
-              moveFile(currentPath, newPath, (err, result) => {
-                console.log(result)
-              });
+              fs.copyFile(currentPath, newPath, () => {
+                console.log('copy file')
+              })
             });
           });
         }
@@ -65,9 +67,11 @@ const readDir = (base) => {
     })
   });
   if (removeAfterSort) {
-    console.log(base)
-    removeDir(base, (err, result) => {
-      console.log(result);
+    rimraf(base, (err) => {
+      if (err) {
+        console.log(err);
+      }
+      console.log('remove folder');
     });
   }
 }
