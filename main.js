@@ -1,4 +1,4 @@
-import fs from 'fs';
+import {promises as fs} from 'fs';
 import path from 'path';
 import yargs from 'yargs';
 import rimraf from 'rimraf';
@@ -37,35 +37,35 @@ const base = path.normalize(path.join(__dirname, argv.entry));
 const resultDir = path.normalize(path.join(__dirname, argv.output));
 const removeAfterSort = argv.remove || false;
 
-const readDir = (base) => {
-  getFiles(base, (err, files) => {
-    if (!files) {
-      return '';
-    }
-    files.forEach(item => {
-      let localBase = path.join(base, item);
-      fs.stat(localBase, (err, state) => {
-        let currentDir = base;
-        if (state.isDirectory()) {
-          readDir(localBase);
-        } else {
-          // Created result dir
-          createDir(resultDir, (err, result) => {
-            const currentPath = path.join(currentDir, item);
-            // Create dir for current file
-            createDir(path.join(result, item[0].toUpperCase()), (err, result) => {
-              // Create new path for file
-              const newPath = path.join(result, item);
-              // Move file to special folder
-              fs.copyFile(currentPath, newPath, () => {
-                console.log('copy file')
-              })
-            });
-          });
-        }
+const readDir = async (base) => {
+  const files = await getFiles(base);
+
+  if (!files) {
+    console.log('No dir and files in current dir');
+  }
+
+  files.forEach(item => {
+    let localBase = path.join(base, item);
+    const state = fs.stat(localBase);
+    let currentDir = base;
+    if (state.isDirectory()) {
+      readDir(localBase);
+    } else {
+      // Created result dir
+      createDir(resultDir, (err, result) => {
+        const currentPath = path.join(currentDir, item);
+        // Create dir for current file
+        createDir(path.join(result, item[0].toUpperCase()), (err, result) => {
+          // Create new path for file
+          const newPath = path.join(result, item);
+          // Move file to special folder
+          fs.copyFile(currentPath, newPath, () => {
+            console.log('copy file')
+          })
+        });
       });
-    })
-  });
+    }
+  })
   if (removeAfterSort) {
     rimraf(base, (err) => {
       if (err) {

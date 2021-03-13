@@ -1,4 +1,4 @@
-import fs from "fs";
+import { promises as fs } from 'fs';
 
 export const createDir = (dirName = '', cb) => {
   if (!fs.existsSync(dirName)) {
@@ -11,9 +11,9 @@ export const createDir = (dirName = '', cb) => {
   cb(null, dirName);
 }
 
-export const getFiles = (base, cb) => {
+export const getFiles = async (base) => {
   try {
-    cb(null, fs.readdirSync(base));
+    return  await fs.readdir(base);
   } catch (err) {
     console.log(err.message);
   }
