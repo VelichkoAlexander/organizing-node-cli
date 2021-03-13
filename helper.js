@@ -1,20 +1,31 @@
-import fs from "fs";
+import {promises as fs} from 'fs';
 
-export const createDir = (dirName = '', cb) => {
-  if (!fs.existsSync(dirName)) {
+export const createDir = async (path = '') => {
+  try {
+    await fs.stat(path);
+  } catch (err) {
     try {
-      fs.mkdirSync(dirName)
+      return await fs.mkdir(path)
     } catch (err) {
-      console.log(`Can't create ${dirName} dir. Error is ${err.message}`);
+      console.log(`Can't create ${path} dir. Error is ${err.message}`);
     }
   }
-  cb(null, dirName);
 }
 
-export const getFiles = (base, cb) => {
+export const getFiles = async (base) => {
   try {
-    cb(null, fs.readdirSync(base));
+    return await fs.readdir(base);
   } catch (err) {
-    console.log(err.message);
+    console.log(err);
+    return false;
+  }
+}
+
+export const isExist = async (path) => {
+  try {
+    return await fs.stat(path);
+  } catch (err) {
+    console.log(err);
+    return false;
   }
 }
