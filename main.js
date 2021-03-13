@@ -1,39 +1,11 @@
 import {promises as fs} from 'fs';
 import path from 'path';
-import yargs from 'yargs';
 import rimraf from 'rimraf';
-
 import {createDir, getFiles, isExist} from './helper.js';
-
-const __dirname = path.resolve();
-
-const argv = yargs(process.argv)
-  .usage("Usage: node $0 [options]")
-  .help('help')
-  .alias('help', 'h')
-  .version('1.0.0')
-  .alias('version', 'v')
-  .example('node $0 --entry [path]', 'File sort')
-  .option('entry', {
-    alias: 'e',
-    describe: 'Start folder path',
-    demandOption: true
-  })
-  .option('output', {
-    alias: 'o',
-    describe: "Result folder path",
-    default: '/result'
-  })
-  .option('remove', {
-    alias: "D",
-    describe: 'Remove start folder?',
-    type: 'boolean',
-    default: false
-  })
-  .epilog('Program for Sort')
-  .argv
+import {argv} from './argv.js';
 
 let count = 0;
+const __dirname = path.resolve();
 const base = path.normalize(path.join(__dirname, argv.entry));
 const resultDir = path.normalize(path.join(__dirname, argv.output));
 const removeAfterSort = argv.remove || false;
@@ -77,7 +49,7 @@ const readDir = async (base) => {
 
 (async () => {
   try {
-   await readDir(base);
+    await readDir(base);
     console.log(`--===sort ${count} file(s)===--`)
   } catch (err) {
     console.log(err)
