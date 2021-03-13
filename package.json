@@ -1,0 +1,14 @@
+{
+  "name": "nodeorganizing",
+  "description": "Organizing files into folders",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "eslint-config-standard": "^16.0.2",
+    "nodemon": "^2.0.7",
+    "rimraf": "^3.0.2",
+    "yargs": "^16.2.0"
+  }
+}
